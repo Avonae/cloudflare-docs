@@ -450,57 +450,31 @@ Capture and replay terminal sessions:
 <TypeScriptExample>
 
 ```ts
-class TerminalRecorder {
-	private events: Array<{
-		timestamp: number;
-		type: "output" | "input";
-		data: string;
-	}> = [];
-	private startTime: number = Date.now();
+// Simple terminal recording for replay
+const events: Array<{ timestamp: number; type: string; data: string }> = [];
+const startTime = Date.now();
 
-	recordOutput(data: string) {
-		this.events.push({
-			timestamp: Date.now() - this.startTime,
-			type: "output",
-			data: data,
-		});
-	}
+function recordOutput(data: string) {
+	events.push({
+		timestamp: Date.now() - startTime,
+		type: "output",
+		data: data,
+	});
+}
 
-	recordInput(data: string) {
-		this.events.push({
-			timestamp: Date.now() - this.startTime,
-			type: "input",
-			data: data,
-		});
-	}
-
-	async replay(terminal: Terminal, speed: number = 1) {
-		for (const event of this.events) {
-			await new Promise((resolve) =>
-				setTimeout(resolve, event.timestamp / speed),
-			);
-
-			if (event.type === "output") {
-				terminal.write(event.data);
-			}
+async function replay(terminal: Terminal, speed = 1) {
+	for (const event of events) {
+		await new Promise((resolve) =>
+			setTimeout(resolve, event.timestamp / speed),
+		);
+		if (event.type === "output") {
+			terminal.write(event.data);
 		}
 	}
+}
 
-	export(): string {
-		return JSON.stringify({
-			version: 1,
-			startTime: this.startTime,
-			events: this.events,
-		});
-	}
-
-	static import(data: string): TerminalRecorder {
-		const parsed = JSON.parse(data);
-		const recorder = new TerminalRecorder();
-		recorder.events = parsed.events;
-		recorder.startTime = parsed.startTime;
-		return recorder;
-	}
+function exportRecording(): string {
+	return JSON.stringify({ version: 1, startTime, events });
 }
 ```
 
@@ -563,35 +537,30 @@ Build interactive coding tutorials:
 <TypeScriptExample>
 
 ```ts
-class CodingTutorial {
-	constructor(private sandbox: Sandbox) {}
+async function startLesson(sandbox: Sandbox, lessonId: string) {
+	// Set up lesson environment
+	await sandbox.exec(
+		`curl -o /tmp/lesson.sh https://tutorials.com/${lessonId}.sh`,
+	);
+	await sandbox.exec("chmod +x /tmp/lesson.sh && /tmp/lesson.sh");
 
-	async startLesson(lessonId: string) {
-		// Set up lesson environment
-		await this.sandbox.exec(
-			`curl -o /tmp/lesson-${lessonId}.sh https://tutorials.com/${lessonId}.sh`,
-		);
-		await this.sandbox.exec(`chmod +x /tmp/lesson-${lessonId}.sh`);
-		await this.sandbox.exec(`/tmp/lesson-${lessonId}.sh`);
+	// Create guided PTY session
+	const pty = await sandbox.pty.create({
+		cwd: `/lessons/${lessonId}`,
+		command: ["bash", "--init-file", "/lessons/tutorial.bashrc"],
+	});
 
-		// Create guided PTY session
-		const pty = await this.sandbox.pty.create({
-			cwd: `/lessons/${lessonId}`,
-			command: ["bash", "--init-file", "/lessons/tutorial.bashrc"],
-		});
+	// Provide hints and validation
+	pty.onData((output) => {
+		if (output.includes("ERROR")) {
+			console.log("Hint: Try checking your syntax");
+		}
+		if (output.includes("SUCCESS")) {
+			console.log("Great job! Moving to next step...");
+		}
+	});
 
-		// Provide hints and validation
-		pty.onData((output) => {
-			if (output.includes("ERROR")) {
-				this.showHint("Try checking your syntax");
-			}
-			if (output.includes("SUCCESS")) {
-				this.advanceToNextStep();
-			}
-		});
-
-		return pty;
-	}
+	return pty;
 }
 ```
 
