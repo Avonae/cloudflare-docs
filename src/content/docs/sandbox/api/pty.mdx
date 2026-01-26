@@ -24,21 +24,21 @@ Creates a new PTY session with configurable terminal dimensions and environment.
 
 ```ts
 const pty = await sandbox.pty.create({
-  cols: 80,        // Terminal width (default: 80)
-  rows: 24,        // Terminal height (default: 24)
-  command: ['bash'], // Command to run (default: ['bash'])
-  cwd: '/workspace', // Working directory (default: /home/user)
-  env: { TERM: 'xterm-256color' } // Environment variables
+	cols: 80, // Terminal width (default: 80)
+	rows: 24, // Terminal height (default: 24)
+	command: ["bash"], // Command to run (default: ['bash'])
+	cwd: "/workspace", // Working directory (default: /home/user)
+	env: { TERM: "xterm-256color" }, // Environment variables
 });
 
 // Subscribe to terminal output
 pty.onData((data) => {
-  process.stdout.write(data);
+	process.stdout.write(data);
 });
 
 // Send commands to the terminal
-await pty.write('ls -la\n');
-await pty.write('cd /workspace && npm install\n');
+await pty.write("ls -la\n");
+await pty.write("cd /workspace && npm install\n");
 ```
 
 </TypeScriptExample>
@@ -47,43 +47,12 @@ await pty.write('cd /workspace && npm install\n');
 
 - `options` (optional): PTY creation options
   - `cols` (number): Terminal width in columns (default: 80)
-  - `rows` (number): Terminal height in rows (default: 24)  
+  - `rows` (number): Terminal height in rows (default: 24)
   - `command` (string[]): Command to execute (default: ['bash'])
   - `cwd` (string): Working directory (default: /home/user)
   - `env` (object): Environment variables
-  - `sessionId` (string): Session ID for session attachment
 
 **Returns:** PTY handle for terminal interaction
-
-### `sandbox.pty.attach()`
-
-Attaches a PTY session to an existing sandbox session, inheriting its working directory and environment variables.
-
-<TypeScriptExample>
-
-```ts
-// Create a session and set up environment
-await sandbox.sessions.create('dev-session');
-await sandbox.exec('cd /workspace', { sessionId: 'dev-session' });
-await sandbox.exec('export NODE_ENV=development', { sessionId: 'dev-session' });
-
-// Attach PTY to the session
-const pty = await sandbox.pty.attach('dev-session', {
-  cols: 100,
-  rows: 30
-});
-
-// PTY now inherits /workspace cwd and NODE_ENV=development
-```
-
-</TypeScriptExample>
-
-**Parameters:**
-
-- `sessionId` (string): Existing session ID to attach to
-- `options` (optional): PTY creation options (cols, rows, command)
-
-**Returns:** PTY handle attached to the session
 
 ### `sandbox.pty.getById()`
 
@@ -121,12 +90,14 @@ Lists all active PTY sessions with their metadata.
 const ptys = await sandbox.pty.list();
 
 console.log(`Found ${ptys.length} active PTY sessions:`);
-ptys.forEach(pty => {
-  console.log(`- ${pty.id}: ${pty.command.join(' ')} (${pty.cols}x${pty.rows})`);
-  console.log(`  State: ${pty.state}, Created: ${pty.createdAt}`);
-  if (pty.exitCode !== undefined) {
-    console.log(`  Exit code: ${pty.exitCode}`);
-  }
+ptys.forEach((pty) => {
+	console.log(
+		`- ${pty.id}: ${pty.command.join(" ")} (${pty.cols}x${pty.rows})`,
+	);
+	console.log(`  State: ${pty.state}, Created: ${pty.createdAt}`);
+	if (pty.exitCode !== undefined) {
+		console.log(`  Exit code: ${pty.exitCode}`);
+	}
 });
 ```
 
@@ -146,13 +117,13 @@ Sends input to the terminal. Returns a Promise for error handling.
 
 ```ts
 // Interactive typing (fire-and-forget)
-pty.write('ls -la\n');
+pty.write("ls -la\n");
 
 // Programmatic commands (await for errors)
 try {
-  await pty.write('npm test\n');
+	await pty.write("npm test\n");
 } catch (error) {
-  console.error('Failed to send command:', error);
+	console.error("Failed to send command:", error);
 }
 ```
 
@@ -175,10 +146,10 @@ Changes the terminal dimensions. Applications receive SIGWINCH signals to adapt 
 await pty.resize(120, 40);
 
 // Responsive terminal sizing
-window.addEventListener('resize', async () => {
-  const cols = Math.floor(window.innerWidth / charWidth);
-  const rows = Math.floor(window.innerHeight / lineHeight);
-  await pty.resize(cols, rows);
+window.addEventListener("resize", async () => {
+	const cols = Math.floor(window.innerWidth / charWidth);
+	const rows = Math.floor(window.innerHeight / lineHeight);
+	await pty.resize(cols, rows);
 });
 ```
 
@@ -199,10 +170,10 @@ Terminates the PTY process with an optional signal.
 
 ```ts
 // Graceful termination
-await pty.kill('SIGTERM');
+await pty.kill("SIGTERM");
 
 // Force kill if needed
-await pty.kill('SIGKILL');
+await pty.kill("SIGKILL");
 
 // Default termination
 await pty.kill();
@@ -226,13 +197,13 @@ Subscribes to terminal output data.
 
 ```ts
 const unsubscribe = pty.onData((data) => {
-  // Forward output to xterm.js terminal
-  terminal.write(data);
-  
-  // Or process the output
-  if (data.includes('Error:')) {
-    console.error('Terminal error detected');
-  }
+	// Forward output to xterm.js terminal
+	terminal.write(data);
+
+	// Or process the output
+	if (data.includes("Error:")) {
+		console.error("Terminal error detected");
+	}
 });
 
 // Later: stop listening
@@ -255,17 +226,17 @@ Handles PTY process termination.
 
 ```ts
 pty.onExit((exitCode) => {
-  if (exitCode === 0) {
-    console.log('Process completed successfully');
-  } else {
-    console.error(`Process exited with code ${exitCode}`);
-    
-    // Check for signal termination
-    if (exitCode > 128) {
-      const signal = exitCode - 128;
-      console.log(`Killed by signal ${signal}`);
-    }
-  }
+	if (exitCode === 0) {
+		console.log("Process completed successfully");
+	} else {
+		console.error(`Process exited with code ${exitCode}`);
+
+		// Check for signal termination
+		if (exitCode > 128) {
+			const signal = exitCode - 128;
+			console.log(`Killed by signal ${signal}`);
+		}
+	}
 });
 ```
 
@@ -291,15 +262,15 @@ const { exitCode } = await pty.exited;
 console.log(`PTY exited with code ${exitCode}`);
 
 // Use with timeout for long-running processes
-const timeout = new Promise((_, reject) => 
-  setTimeout(() => reject(new Error('Timeout')), 30000)
+const timeout = new Promise((_, reject) =>
+	setTimeout(() => reject(new Error("Timeout")), 30000),
 );
 
 try {
-  const result = await Promise.race([pty.exited, timeout]);
-  console.log('Completed:', result.exitCode);
+	const result = await Promise.race([pty.exited, timeout]);
+	console.log("Completed:", result.exitCode);
 } catch (error) {
-  console.log('Still running after 30 seconds');
+	console.log("Still running after 30 seconds");
 }
 ```
 
@@ -313,28 +284,28 @@ PTY handles support async iteration for scripting scenarios:
 
 ```ts
 async function processOutput() {
-  const pty = await sandbox.pty.create();
-  pty.write('find /etc -name "*.conf"\n');
-  
-  for await (const output of pty) {
-    if (output.includes('/etc/nginx/nginx.conf')) {
-      console.log('Found Nginx config');
-      break;
-    }
-  }
+	const pty = await sandbox.pty.create();
+	pty.write('find /etc -name "*.conf"\n');
+
+	for await (const output of pty) {
+		if (output.includes("/etc/nginx/nginx.conf")) {
+			console.log("Found Nginx config");
+			break;
+		}
+	}
 }
 
 // Or collect all output
 async function captureSession() {
-  const pty = await sandbox.pty.create();
-  pty.write('git status && git log --oneline -5\n');
-  pty.write('exit\n');
-  
-  let fullOutput = '';
-  for await (const chunk of pty) {
-    fullOutput += chunk;
-  }
-  return fullOutput;
+	const pty = await sandbox.pty.create();
+	pty.write("git status && git log --oneline -5\n");
+	pty.write("exit\n");
+
+	let fullOutput = "";
+	for await (const chunk of pty) {
+		fullOutput += chunk;
+	}
+	return fullOutput;
 }
 ```
 
@@ -349,31 +320,31 @@ Build interactive terminal applications with live output streaming:
 <TypeScriptExample>
 
 ```ts
-import { Terminal } from 'xterm';
+import { Terminal } from "xterm";
 
 // Create xterm.js terminal
 const terminal = new Terminal({
-  cursorBlink: true,
-  theme: {
-    background: '#1a1a1a',
-    foreground: '#ffffff',
-    cursor: '#ffffff'
-  }
+	cursorBlink: true,
+	theme: {
+		background: "#1a1a1a",
+		foreground: "#ffffff",
+		cursor: "#ffffff",
+	},
 });
 
 // Connect to PTY
 const pty = await sandbox.pty.create({
-  cols: terminal.cols,
-  rows: terminal.rows
+	cols: terminal.cols,
+	rows: terminal.rows,
 });
 
 // Bidirectional communication
-pty.onData(data => terminal.write(data));
-terminal.onData(data => pty.write(data));
+pty.onData((data) => terminal.write(data));
+terminal.onData((data) => pty.write(data));
 
 // Handle terminal resize
 terminal.onResize(({ cols, rows }) => {
-  pty.resize(cols, rows);
+	pty.resize(cols, rows);
 });
 ```
 
@@ -394,34 +365,12 @@ const ptyId = pty.id; // Share this ID
 const sharedPty = await sandbox.pty.getById(ptyId);
 
 // Everyone sees the same output
-sharedPty.onData(data => {
-  broadcastToAllUsers(data);
+sharedPty.onData((data) => {
+	broadcastToAllUsers(data);
 });
 
 // Any user can send input
 sharedPty.write(userInput);
-```
-
-</TypeScriptExample>
-
-### Session-aware PTY
-
-Combine PTY with sandbox sessions for persistent state:
-
-<TypeScriptExample>
-
-```ts
-// Set up project environment in a session
-await sandbox.sessions.create('project');
-await sandbox.exec('cd /workspace/my-project', { sessionId: 'project' });
-await sandbox.exec('source .env && export $(grep -v "^#" .env | xargs)', { 
-  sessionId: 'project' 
-});
-
-// Attach PTY to inherit the environment
-const pty = await sandbox.pty.attach('project');
-
-// PTY automatically has project directory and environment
 ```
 
 </TypeScriptExample>
@@ -434,25 +383,27 @@ PTY operations can fail due to various conditions:
 
 ```ts
 try {
-  const pty = await sandbox.pty.create();
-  await pty.write('risky-command\n');
+	const pty = await sandbox.pty.create();
+	await pty.write("risky-command\n");
 } catch (error) {
-  if (error.message.includes('PTY is closed')) {
-    console.log('PTY was terminated externally');
-  } else if (error.message.includes('Container not available')) {
-    console.log('Sandbox container is not running');
-  } else {
-    console.error('Unexpected PTY error:', error);
-  }
+	if (error.message.includes("PTY is closed")) {
+		console.log("PTY was terminated externally");
+	} else if (error.message.includes("Container not available")) {
+		console.log("Sandbox container is not running");
+	} else {
+		console.error("Unexpected PTY error:", error);
+	}
 }
 
 // Handle connection issues
-pty.onExit(exitCode => {
-  if (exitCode === 137) { // SIGKILL
-    console.log('PTY was force-killed');
-  } else if (exitCode === 143) { // SIGTERM  
-    console.log('PTY terminated gracefully');
-  }
+pty.onExit((exitCode) => {
+	if (exitCode === 137) {
+		// SIGKILL
+		console.log("PTY was force-killed");
+	} else if (exitCode === 143) {
+		// SIGTERM
+		console.log("PTY terminated gracefully");
+	}
 });
 ```
 
