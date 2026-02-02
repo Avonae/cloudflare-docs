@@ -2,7 +2,7 @@
 
 ## CPU Time Limits
 
-**Standard**: 10ms CPU time  
+**Standard**: 10ms CPU time
 **Unbound**: 30ms CPU time
 
 **Solutions**:
@@ -70,7 +70,7 @@ export default {
 | Request size | 100 MB |
 | Response size | Unlimited (streaming) |
 | CPU time | 10ms (standard) / 30ms (unbound) |
-| Subrequests | 1000 per request |
+| Subrequests | 50 per request (free) / 10000 per request (paid) |
 | KV reads | 1000 per request |
 | KV write size | 25 MB |
 | Environment size | 5 MB |
@@ -79,17 +79,17 @@ export default {
 
 ### "Error: Body has already been used"
 
-**Cause**: Response body read twice  
+**Cause**: Response body read twice
 **Solution**: Clone response before reading: `response.clone()`
 
 ### "Error: Too much CPU time used"
 
-**Cause**: Exceeded CPU limit  
+**Cause**: Exceeded CPU limit
 **Solution**: Use `ctx.waitUntil()` for background work
 
 ### "Error: Subrequest depth limit exceeded"
 
-**Cause**: Too many nested subrequests  
+**Cause**: Too many nested subrequests
 **Solution**: Flatten request chain, use service bindings
 
 ## See Also
